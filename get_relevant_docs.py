@@ -21,12 +21,14 @@ def get_docs(query_text: str):
         return "Unable to find matching results.", []
 
     start = time.time()
-    relevant_dense_documents, irrelevant_dense_documents = grade(dense_results, query_text)
+    # relevant_dense_documents, irrelevant_dense_documents = grade(dense_results, query_text)
+    relevant_dense_documents = dense_results
     end = time.time()
     time_relevant_dense = end - start
 
     start = time.time()
-    relevant_sparse_documents, irrelevant_sparse_documents = grade(sparse_results, query_text)
+    # relevant_sparse_documents, irrelevant_sparse_documents = grade(sparse_results, query_text)
+    relevant_sparse_documents = sparse_results
     end = time.time()
     time_relevant_sparse = end - start
 
@@ -47,7 +49,8 @@ def get_docs(query_text: str):
             all_documents.append(document)
 
     start = time.time()
-    reranked_documents = rank_docs(all_documents, query_text)
+    # reranked_documents = rank_docs(all_documents, query_text)
+    reranked_documents = all_documents
     end = time.time()
     time_rerank = end - start
 
@@ -55,11 +58,11 @@ def get_docs(query_text: str):
     for document in reranked_documents:
         response_text += f"\n{document.metadata.get('source')} \nTime {document.metadata.get('time')} \n"
 
-    # print("Times")
-    # print("-----------------")
-    # print(f"Dense retrieval: {time_dense}")
-    # print(f"Sparse retrieval: {time_sparse}")
-    # print(f"Relevant dense: {time_relevant_dense}")
-    # print(f"Relevant sparse: {time_relevant_sparse}")
-    # print(f"Rerank: {time_rerank}")
+    print("Times")
+    print("-----------------")
+    print(f"Dense retrieval: {time_dense}")
+    print(f"Sparse retrieval: {time_sparse}")
+    print(f"Relevant dense: {time_relevant_dense}")
+    print(f"Relevant sparse: {time_relevant_sparse}")
+    print(f"Rerank: {time_rerank}")
     return response_text, reranked_documents
