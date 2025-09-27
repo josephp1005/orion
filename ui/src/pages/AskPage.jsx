@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import VerticalTimeline from '../components/VerticalTimeline';
 
-
-
-
 const AskPage = () => {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'How can I help you today?' }
@@ -14,6 +11,7 @@ const AskPage = () => {
   const handleSend = async () => {
     if (input.trim()) {
       setMessages([...messages, { role: 'user', content: input }]);
+      setInput("");
       try {
         const response = await fetch(`http://localhost:5050/output?query=${encodeURIComponent(input)}`);
         console.log(response);
@@ -23,50 +21,51 @@ const AskPage = () => {
       } catch (error) {
         setMessages(msgs => [...msgs, { role: 'assistant', content: 'Error fetching response.' }]);
       }
-      setInput('');
     }
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      {/* Left: chat and input UI */}
-      <div style={{ flex: 1 }}>
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-3xl mx-auto w-full space-y-4">
-              {messages.map((message, index) => (
+    <div className="flex flex-1 h-full w-full">
+      {/* Chat interface - takes full width */}
+      <div className="flex flex-col flex-1 min-w-0 w-full">
+        <div className="flex-1 overflow-y-auto p-6 w-full">
+          <div className="max-w-4xl mx-auto space-y-4 w-full">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex w-full ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
                 <div
-                  key={index}
-                  className={`flex ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  className={`max-w-2xl p-3 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
                   }`}
                 >
-                  <div
-                    className={`max-w-lg p-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p>{message.content}</p>
-                  </div>
+                  <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-          <div className="p-4 border-t border-border">
-            <div className="max-w-3xl mx-auto flex space-x-2">
+        </div>
+        
+        {/* Input section - fixed at bottom, full width */}
+        <div className="flex-shrink-0 p-6 border-t border-border w-full">
+          <div className="max-w-4xl mx-auto w-full">
+            <div className="flex gap-2 w-full">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="flex-1 px-3 py-2 rounded-md bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex-1 px-3 py-2 rounded-md bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               />
               <button
                 onClick={handleSend}
-                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 flex-shrink-0"
               >
                 Send
               </button>
@@ -74,10 +73,15 @@ const AskPage = () => {
           </div>
         </div>
       </div>
-      {/* Right: timeline */}
-      <div style={{ width: '400px', marginLeft: '32px', height: '100%', overflowY: 'auto' }}>
-        <VerticalTimeline events={events} />
-      </div>
+      
+      {/* Right: timeline (render only when we have events) */}
+      {events?.length > 0 && (
+        <div className="flex-shrink-0 w-[400px] border-l border-border overflow-y-auto">
+          <div className="p-6">
+            <VerticalTimeline events={events} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
