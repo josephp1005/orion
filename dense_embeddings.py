@@ -6,10 +6,10 @@ from langchain_community.vectorstores.chroma import Chroma
 from aggregate_documents import DATA_PATH, CHROMA_PATH
 
 # must change this for non PDF data
-def load_documents():
+def load_pdf_documents():
+    # For PDFs in a directory (default behavior):
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
     return document_loader.load()
-
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -68,7 +68,7 @@ def calculate_chunk_ids(chunks):
 
 
 def pdf_pipeline():
-    documents = load_documents()
+    documents = load_pdf_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
