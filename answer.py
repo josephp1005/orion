@@ -4,6 +4,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain.schema import Document
 from get_relevant_docs import get_docs
 import argparse
+from datetime import datetime
 
 
 """
@@ -43,8 +44,26 @@ def rag_pipeline(query: str):
     formatted_doc_list, docs = get_docs(query)
     output = response(docs, query)
 
-    return formatted_doc_list, output
+    return formatted_doc_list, output, docs
 
+def sort_doc_by_time(doc_list):
+    doc_list.sort(
+        key=lambda doc: datetime.strptime(doc.metadata["time"], "%Y-%m-%d %H:%M:%S")
+    )
+
+def format_sorted_docs(doc_list):
+    response = []
+    for document in doc_list:
+        response.append({"source": document.metadata["source"], "time": document.metadata["time"], "content": document.page_content})
+
+    return response
+
+def docs_and_response(query: str):
+    formatted_doc_list, output, docs = rag_pipeline(query)
+    sort_doc_by_time(docs)
+    sorted_docs_response = format_sorted_docs(docs)
+
+    return {"docs": sorted_docs_response, "response": output}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -52,10 +71,13 @@ def main():
     args = parser.parse_args()
     query_text = args.query_text
 
-    formatted_doc_list, output = rag_pipeline(query_text)
+    formatted_doc_list, output, docs = rag_pipeline(query_text)
+    sort_doc_by_time(docs)
 
-    print(formatted_doc_list)
-    print(output)
+    sorted_docs_response = format_sorted_docs(docs)
+
+    print(sorted_docs_response)
+    print(output)   
 
 
 if __name__ == "__main__":

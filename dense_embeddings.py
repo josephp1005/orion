@@ -7,6 +7,7 @@ from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
 from aggregate_documents import DATA_PATH, CHROMA_PATH
+from datetime import datetime
 
 # must change this for non PDF data
 def load_pdf_documents():
@@ -44,6 +45,8 @@ def add_to_chroma(chunks: list[Document]):
 
     new_chunks = []
     for chunk in chunks_with_ids:
+        if ("time" not in chunk.metadata):
+            chunk.metadata["time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if chunk.metadata["id"] not in existing_ids:
             new_chunks.append(chunk)
 
