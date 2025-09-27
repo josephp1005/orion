@@ -2,11 +2,12 @@
 might have to change unique ID calc
 """
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
-from aggregate_documents import DATA_PATH, CHROMA_PATH
+from aggregate_documents import DATA_PATH, CHROMA_PATH, TERMINAL_LOG_PATH
 from datetime import datetime
 
 # must change this for non PDF data
@@ -20,6 +21,10 @@ def load_slack_documents(messages):
     for message in messages:
         documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
     return documents
+
+def load_terminal_documents():
+    document_loader = DirectoryLoader(TERMINAL_LOG_PATH)
+    return document_loader.load()
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -37,7 +42,6 @@ def add_to_chroma(chunks: list[Document]):
     )
 
     chunks_with_ids = calculate_chunk_ids(chunks)
-    print(chunks_with_ids)
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
@@ -88,6 +92,11 @@ def pdf_pipeline():
 
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
+
+def terminal_pipeline():
+    documents = load_terminal_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
