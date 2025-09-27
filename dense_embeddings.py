@@ -2,12 +2,15 @@
 might have to change unique ID calc
 """
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
-from aggregate_documents import DATA_PATH, CHROMA_PATH
+from aggregate_documents import DATA_PATH, CHROMA_PATH, GIT_PR_PATH
 from datetime import datetime
+import json
+import os
 
 # must change this for non PDF data
 def load_pdf_documents():
@@ -21,6 +24,21 @@ def load_slack_documents(messages):
         documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
     return documents
 
+def load_github_prs():
+    for fname in os.listdir(GIT_PR_PATH):
+        if fname.endswith("refined_pr_info.json"):
+            filepath = os.path.join(GIT_PR_PATH, fname)
+            break
+    else:
+        raise FileNotFoundError("No file ending with refined_pr_info.json found")
+
+    with open(filepath, "r") as file:
+        data = json.load(file)
+        documents = []
+        for pr in data:
+            documents.append(Document(page_content=pr['diff'], metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":pr['created_at']}))
+        return documents
+    
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
@@ -85,9 +103,14 @@ def pdf_pipeline():
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
-
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
+
+
+def git_pr_pipeline():
+    documents = load_github_prs()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
