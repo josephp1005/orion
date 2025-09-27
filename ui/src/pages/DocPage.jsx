@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getPageContent } from '@/lib/api';
+import { useData } from '@/contexts/DataContext';
 import Block from '@/components/Block';
+import Spinner from '@/components/Spinner';
 
 export default function DocPage() {
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { collection: collectionSlug, slug: pageSlug } = useParams();
+  const { getPage } = useData();
 
   useEffect(() => {
-    const fetchPage = async () => {
+    const loadPage = async () => {
       try {
         setLoading(true);
-        const pageData = await getPageContent(collectionSlug, pageSlug);
+        const pageData = await getPage(collectionSlug, pageSlug);
         if (pageData) {
-          // Sort blocks by position
-          pageData.page_blocks.sort((a, b) => a.position - b.position);
           setPage(pageData);
         } else {
           setError('Page not found.');
@@ -29,11 +29,14 @@ export default function DocPage() {
       }
     };
 
-    fetchPage();
-  }, [collectionSlug, pageSlug]);
+    loadPage();
+  }, [collectionSlug, pageSlug, getPage]);
 
   if (loading) {
-    return <div className="mx-auto max-w-3xl px-6 py-8 text-white">Loading...</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+      </div>
+    );
   }
 
   if (error) {

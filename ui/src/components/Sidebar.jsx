@@ -1,19 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getCollections } from '../lib/api';
+import { useData } from '../contexts/DataContext';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collections, setCollections] = useState([]);
-
-  useEffect(() => {
-    const fetchCollections = async () => {
-      const data = await getCollections();
-      setCollections(data);
-    };
-    fetchCollections();
-  }, []);
+  const { collections } = useData();
 
   return (
     <aside className="w-[280px] bg-panel border-r border-border flex flex-col p-6">
@@ -39,8 +31,8 @@ const Sidebar = () => {
                     }}
                     className={`block text-sm py-1.5 px-2 rounded-md ${
                       location.pathname === `/docs/${collection.slug}/${page.slug}`
-                        ? 'bg-muted border-l-2 border-primary text-text'
-                        : 'text-text-muted hover:bg-muted'
+                        ? 'bg-muted border-l-2 border-primary text-text hover:text-text'
+                        : 'text-text-muted hover:bg-muted hover:text-text'
                     }`}
                   >
                     {page.title}
