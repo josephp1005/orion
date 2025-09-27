@@ -1,7 +1,8 @@
 from slack_sdk import WebClient
 from datetime import datetime
 #from dense_embeddings import slack_pipeline
-import os, json
+import os, json, time
+
 
 
 STATE_FILE = "slack_state.json"
@@ -87,28 +88,32 @@ def fetch_slack_messages(channel_id, limit=10):
 
 if __name__ == "__main__":
     channel_id = "C09HBSF54H3"  # replace with your channel id
-    msgs = fetch_slack_messages(channel_id)
+    
+    while True:
+        msgs = fetch_slack_messages(channel_id)
 
 
-    last_ts = load_last_ts(channel_id)
-    if msgs:
-        latest_ts = msgs[0]["timestamp"]
-    else:
-        latest_ts = last_ts
+        last_ts = load_last_ts(channel_id)
+        if msgs:
+            latest_ts = msgs[0]["timestamp"]
+        else:
+            latest_ts = last_ts
 
 
-    if last_ts:
-        new_msgs = [m for m in msgs if float(m["timestamp"]) > float(last_ts)]
-    else:
-        new_msgs = msgs
+        if last_ts:
+            new_msgs = [m for m in msgs if float(m["timestamp"]) > float(last_ts)]
+        else:
+            new_msgs = msgs
 
 
-    if latest_ts:
-        save_last_ts(channel_id, latest_ts)
+        if latest_ts:
+            save_last_ts(channel_id, latest_ts)
 
 
-    for m in new_msgs:
-        print(f"[{m['datetime']}] {m['user']}: {m['text']}")
-    for m in msgs:
-        print(f"[{m['datetime']}] {m['user']}: {m['text']}")
-    #slack_pipeline(new_msgs)
+        for m in new_msgs:
+            print(f"[{m['datetime']}] {m['user']}: {m['text']}")
+        for m in msgs:
+            print(f"[{m['datetime']}] {m['user']}: {m['text']}")
+        #slack_pipeline(new_msgs)
+
+        time.sleep(60)
