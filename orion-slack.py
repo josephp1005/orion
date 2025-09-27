@@ -6,7 +6,6 @@ import os, json, time
 
 STATE_FILE = "slack_state.json"
 
-
 def load_last_ts(channel_id: str):
     if not os.path.exists(STATE_FILE):
         return None
