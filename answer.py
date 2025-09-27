@@ -16,8 +16,8 @@ def response(documents: list[Document], question: str):
 
     prompt = PromptTemplate(
         template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You will be given a user query along 
-        with a list of potentially helpful documents in answering that query.
-        Answer the query, and provide helpful guidance for further learning. Do not provide a preamble. \n
+        with a list of potentially helpful documents in answering that query. Answer the query. 
+        Do not provide a preamble. Rather than saying info is from "Documents", mention their specific source. \n
          <|eot_id|><|start_header_id|>user<|end_header_id|>
         Here are the retrieved documents: \n\n {documents} \n\n
         Here is the user question: {question} \n <|eot_id|><|start_header_id|>assistant<|end_header_id|>
@@ -31,8 +31,8 @@ def response(documents: list[Document], question: str):
     for document in documents:
         doc_content = document.page_content
         doc_source = document.metadata.get("source")
-        doc_page = document.metadata.get("page")
-        document_text += f"\n Source: {doc_source} Page: {doc_page} \n Content: {doc_content} \n"
+        doc_time = document.metadata.get("time")
+        document_text += f"\n Source: {doc_source} Time: {doc_time} \n Content: {doc_content} \n"
 
     output = generator.invoke({"question": question, "documents": document_text})
 
@@ -54,6 +54,7 @@ def main():
 
     formatted_doc_list, output = rag_pipeline(query_text)
 
+    print(formatted_doc_list)
     print(output)
 
 

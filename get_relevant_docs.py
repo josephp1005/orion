@@ -7,12 +7,12 @@ import time
 
 def get_docs(query_text: str):
     start = time.time()
-    dense_results = dense_relevant_documents(query_text, 20)
+    dense_results = dense_relevant_documents(query_text, 5)
     end = time.time()
     time_dense = end - start
 
     start = time.time()
-    sparse_results = sparse_relevant_documents(query_text, 20)
+    sparse_results = sparse_relevant_documents(query_text, 5)
     end = time.time()
     time_sparse = end - start
 
@@ -53,13 +53,13 @@ def get_docs(query_text: str):
 
     response_text = ""
     for document in reranked_documents:
-        response_text += f"\n{document.metadata.get('source')} \npage {document.metadata.get('page')} \n"
+        response_text += f"\n{document.metadata.get('source')} \nTime {document.metadata.get('time')} \n"
 
-    print("Times")
-    print("-----------------")
-    print(f"Dense retrieval: {time_dense}")
-    print(f"Sparse retrieval: {time_sparse}")
-    print(f"Relevant dense: {time_relevant_dense}")
-    print(f"Relevant sparse: {time_relevant_sparse}")
-    print(f"Rerank: {time_rerank}")
+    # print("Times")
+    # print("-----------------")
+    # print(f"Dense retrieval: {time_dense}")
+    # print(f"Sparse retrieval: {time_sparse}")
+    # print(f"Relevant dense: {time_relevant_dense}")
+    # print(f"Relevant sparse: {time_relevant_sparse}")
+    # print(f"Rerank: {time_rerank}")
     return response_text, reranked_documents
