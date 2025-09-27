@@ -9,19 +9,16 @@ from langchain_community.vectorstores.chroma import Chroma
 from aggregate_documents import DATA_PATH, CHROMA_PATH
 
 # must change this for non PDF data
-def load_documents():
+def load_pdf_documents():
+    # For PDFs in a directory (default behavior):
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
     return document_loader.load()
 
-# text_data = ["Your first text", "Your second text"]
-# documents = [Document(page_content=text, metadata={"source": "manual", "page": idx}) for idx, text in enumerate(text_data)]
-# return documents
 def load_slack_documents(messages):
     documents = []
     for message in messages:
         documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
     return documents
-
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -81,7 +78,7 @@ def calculate_chunk_ids(chunks):
 
 
 def pdf_pipeline():
-    documents = load_documents()
+    documents = load_pdf_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
