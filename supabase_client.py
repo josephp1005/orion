@@ -50,10 +50,8 @@ def get_docs_structure():
 def execute_documentation_changes(queries: Iterable[Union[str, dict]]):
     results = []
     for item in queries:
-        # normalize to SQL string
         sql = item
         try:
-            # IMPORTANT: only send the arg your RPC actually accepts
             supabase.rpc("execute_sql", {"query": sql}).execute()
             results.append({"query": sql, "status": "success"})
         except Exception as e:

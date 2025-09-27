@@ -7,15 +7,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: '#0b0f14',
-        panel: '#12171f',
-        muted: '#1a2130',
-        primary: '#2f6feb',
-        'primary-foreground': '#eaf1ff',
-        accent: '#e95c5c',
-        text: '#e6e9ef',
-        'text-muted': '#b8c0cc',
-        border: '#232a36',
+        bg: '#0d1117',                // deep space background
+        panel: '#161b22',             // sidebar / panel contrast
+        muted: '#1e293b',             // muted sections (code blocks, etc.)
+        primary: '#14b8a6',             // turquoise highlight (buttons, links)
+        'primary-foreground': '#eafdfc', // very light aqua/white for text on turquoise
+        accent: '#10b981',            // constellation violet/indigo
+        text: '#e5e7eb',
+        'text-muted': '#9ca3af',    
+        border: '#232a36', 
       }
     },
   },
