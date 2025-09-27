@@ -11,7 +11,6 @@ const AskPage = () => {
   const handleSend = async () => {
     if (input.trim()) {
       setMessages([...messages, { role: 'user', content: input }]);
-      setInput("");
       try {
         const response = await fetch(`http://localhost:5050/output?query=${encodeURIComponent(input)}`);
         console.log(response);
@@ -21,15 +20,15 @@ const AskPage = () => {
       } catch (error) {
         setMessages(msgs => [...msgs, { role: 'assistant', content: 'Error fetching response.' }]);
       }
+      setInput('');
     }
   };
 
   return (
-    <div className="flex flex-1 h-full w-full">
-      {/* Chat interface - takes full width */}
-      <div className="flex flex-col flex-1 min-w-0 w-full">
-        <div className="flex-1 overflow-y-auto p-6 w-full">
-          <div className="max-w-4xl mx-auto space-y-4 w-full">
+    <div className="flex h-full w-full">
+      <div className="flex flex-col w-3/4 flex-shrink-0 min-h-0">
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-4xl mx-auto w-full space-y-4">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -51,8 +50,7 @@ const AskPage = () => {
           </div>
         </div>
         
-        {/* Input section - fixed at bottom, full width */}
-        <div className="flex-shrink-0 p-6 border-t border-border w-full">
+        <div className="flex-shrink-0 p-6 border-t border-border">
           <div className="max-w-4xl mx-auto w-full">
             <div className="flex gap-2 w-full">
               <input
@@ -74,14 +72,43 @@ const AskPage = () => {
         </div>
       </div>
       
-      {/* Right: timeline (render only when we have events) */}
-      {events?.length > 0 && (
-        <div className="flex-shrink-0 w-[400px] border-l border-border overflow-y-auto">
-          <div className="p-6">
-            <VerticalTimeline events={events} />
-          </div>
+      <div className="w-1/4 flex-shrink-0 border-l border-border bg-panel/50 flex flex-col">
+        <div className="p-6 border-b border-border">
+          <h3 className="font-semibold text-primary mb-2">Reference Timeline</h3>
+          <p className="text-sm text-text-muted">
+            {events.length === 0 
+              ? "Timeline for reference resources will appear here after your first question."
+              : "Resources used to answer your questions"
+            }
+          </p>
         </div>
-      )}
+        <div className="flex-1 overflow-y-auto">
+          {events.length > 0 && (
+            <div className="p-4">
+              <VerticalTimeline events={events} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="w-1/4 border-l border-border bg-panel/50 flex flex-col">
+        <div className="p-6 border-b border-border">
+          <h3 className="font-semibold text-primary mb-2">Reference Timeline</h3>
+          <p className="text-sm text-text-muted">
+            {events.length === 0 
+              ? "Timeline for reference resources will appear here after your first question."
+              : "Resources used to answer your questions"
+            }
+          </p>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {events.length > 0 && (
+            <div className="p-4">
+              <VerticalTimeline events={events} />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
