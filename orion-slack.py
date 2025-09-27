@@ -38,8 +38,6 @@ def get_username(msg):
     bot_id = msg.get("bot_id")
     username = msg.get("username")
 
-
-    # Case 1: Human user
     if user_id:
         try:
             user_info = client.users_info(user=user_id)
@@ -48,17 +46,14 @@ def get_username(msg):
             return f"Unknown User ({user_id})"
 
 
-    # Case 2: Bot message with a bot_id
     if bot_id:
         return f"Bot ({bot_id})"
 
 
-    # Case 3: Message with 'username' field (custom integration)
     if username:
         return username
 
 
-    # Fallback
     return "System"
 
 
@@ -83,10 +78,9 @@ def fetch_slack_messages(channel_id, limit=10):
     messages = []
 
     for msg in result["messages"]:
-        # Add top-level message
+
         messages.append(normalize_message(msg, is_thread=False))
 
-        # If the message has a thread, fetch replies
         if "thread_ts" in msg and msg["thread_ts"] == msg["ts"]:
             replies = client.conversations_replies(channel=channel_id, ts=msg["ts"])
             for reply in replies["messages"][1:]:  # skip parent
