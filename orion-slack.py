@@ -7,7 +7,6 @@ import os, json, time
 load_dotenv()
 slack_key = os.getenv("SLACK_KEY")
 client = WebClient(token=slack_key)
-
 STATE_FILE = "slack_state.json"
 
 def load_last_ts(channel_id: str):
