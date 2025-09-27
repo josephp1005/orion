@@ -1,6 +1,6 @@
 from slack_sdk import WebClient
 from datetime import datetime
-#from dense_embeddings import slack_pipeline
+from dense_embeddings import slack_pipeline
 from dotenv import load_dotenv
 import os, json, time
 
@@ -112,5 +112,7 @@ if __name__ == "__main__":
 
             for m in new_msgs:
                 print(f"[{m['datetime']}] (#{m['channel']}) {m['user']}: {m['text']}")
+            slack_pipeline(msgs)
+
         #slack_pipeline(new_msgs)
         time.sleep(60)
