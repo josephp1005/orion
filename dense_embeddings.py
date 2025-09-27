@@ -2,11 +2,12 @@
 might have to change unique ID calc
 """
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
-from aggregate_documents import DATA_PATH, CHROMA_PATH
+from aggregate_documents import DATA_PATH, CHROMA_PATH, TERMINAL_LOG_PATH
 from datetime import datetime
 import asyncio
 from curate import get_documentation_suggestions
@@ -24,6 +25,10 @@ def load_slack_documents(messages):
     for message in messages:
         documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
     return documents
+
+def load_terminal_documents():
+    document_loader = DirectoryLoader(TERMINAL_LOG_PATH)
+    return document_loader.load()
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -133,6 +138,11 @@ def slack_pipeline(messages):
     chunks = split_documents(documents)
     add_to_chroma(chunks)
     llm_curation(documents)
+
+def terminal_pipeline():
+    documents = load_terminal_documents()
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
 
 
 def remove_all():

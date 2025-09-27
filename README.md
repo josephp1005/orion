@@ -79,14 +79,14 @@ When finished, run:
    ./local_scripts/kill.sh
    ```
 
-# Usage with slack
-1.```
-  python orion-test-slack.py
-  ```
-2. ```
-   python dense_embeddings.py
-   ```
-3. ```
-   python sparse_embedding.py
-   ```
+# Slack
+1. Run orion-slack.py to poll slack and update dense
+2. Currently would need to manually update sparse
+
+# Terminal
+1. You can do it from any directory, but need to run the script oterm/oterm.sh
+2. Once done capturing commands, do exit; will update dense
+3. Again would need to manually update sparse
+
+
 
