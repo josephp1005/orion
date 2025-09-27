@@ -96,7 +96,7 @@ if __name__ == "__main__":
     commit_info = extract_commit_info(prs)
     
     # Save commit info
-    with open(f"/Users/abihithvelumuri/Projects/hack-gt/orion/github/json/{owner}_{repo}_refined_pr_info.json", 'w') as f:
+    with open(f"json/{owner}_{repo}_refined_pr_info.json", 'w') as f:
         json.dump(commit_info, f, indent=2)
     
     print(f"\nExtracted commit info for {len(commit_info)} PRs")

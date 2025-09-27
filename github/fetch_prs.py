@@ -140,7 +140,7 @@ def main():
     all_prs = open_prs + closed_prs
     
     # Save to file with repo name in filename
-    filename = f"/Users/abihithvelumuri/Projects/hack-gt/orion/github/json/{owner}_{repo}_pull_requests.json"
+    filename = f"json/{owner}_{repo}_pull_requests.json"
     fetcher.save_to_file(all_prs, filename)
     
     subprocess.run(["python3", "analyze_prs.py", filename], shell=False)

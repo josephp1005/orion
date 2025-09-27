@@ -1,0 +1,125 @@
+diff --git a/.changeset/five-fans-swim.md b/.changeset/five-fans-swim.md
+new file mode 100644
+index 000000000000..cd8690b343fd
+--- /dev/null
++++ b/.changeset/five-fans-swim.md
+@@ -0,0 +1,8 @@
++---
++"@refinedev/react-hook-form": patch
++---
++
++- Add useEffect to set form values from initial query result when modal is visible.
++- Compensates for useForm not setting initial modal form values when querying the same resource id back-to-back.
++
++[Resolves #6904](https://github.com/refinedev/refine/issues/6904)
+diff --git a/packages/react-hook-form/src/useModalForm/index.spec.ts b/packages/react-hook-form/src/useModalForm/index.spec.ts
+index 4f82696d1d17..b6ff21c5029d 100644
+--- a/packages/react-hook-form/src/useModalForm/index.spec.ts
++++ b/packages/react-hook-form/src/useModalForm/index.spec.ts
+@@ -291,11 +291,16 @@ describe("useModalForm Hook", () => {
+ 
+     await act(async () => {
+       result.current.modal.show();
++    });
++
++    await act(async () => {
+       // register values to form
+       result.current.register("test");
+       result.current.setValue("test", "test");
+     });
+ 
++    expect(result.current.getValues()).toStrictEqual({ test: "test" });
++
+     await act(async () => {
+       result.current.modal.close();
+     });
+@@ -350,20 +355,36 @@ describe("useModalForm Hook", () => {
+           },
+         }),
+       {
+-        wrapper: TestWrapper({}),
++        wrapper: TestWrapper({
++          dataProvider: {
++            ...MockJSONServer,
++            getOne: () =>
++              Promise.resolve({ data: { id: 5, title: "default-title" } }),
++          },
++        }),
+       },
+     );
+ 
+     await act(async () => {
+       result.current.modal.show();
+-      result.current.register("test");
+-      result.current.setValue("test", "test");
++    });
++
++    await act(async () => {
++      result.current.setValue("title", "new-title");
++    });
++
++    expect(result.current.getValues()).toStrictEqual({
++      id: 5,
++      title: "new-title",
+     });
+ 
+     await act(async () => {
+       result.current.modal.close();
+     });
+ 
+-    expect(result.current.getValues()).toStrictEqual({});
++    expect(result.current.getValues()).toStrictEqual({
++      id: 5,
++      title: "default-title",
++    });
+   });
+ });
+diff --git a/packages/react-hook-form/src/useModalForm/index.ts b/packages/react-hook-form/src/useModalForm/index.ts
+index e9e07a58db58..3f696e9881c6 100644
+--- a/packages/react-hook-form/src/useModalForm/index.ts
++++ b/packages/react-hook-form/src/useModalForm/index.ts
+@@ -64,11 +64,11 @@ export type UseModalFormProps<
+   /**
+      * @description Configuration object for the modal.
+      * `defaultVisible`: Initial visibility state of the modal.
+-     * 
++     *
+      * `autoSubmitClose`: Whether the form should be submitted when the modal is closed.
+-     * 
++     *
+      * `autoResetForm`: Whether the form should be reset when the form is submitted.
+-     * 
++     *
+      * `autoResetFormWhenClose`: Whether the form should be reset to defaultValues when the modal is closed.
+      * @type `{
+       defaultVisible?: boolean;
+@@ -176,7 +176,7 @@ export const useModalForm = <
+ 
+   const {
+     reset,
+-    refineCore: { onFinish, id, setId, autoSaveProps },
++    refineCore: { onFinish, id, setId, autoSaveProps, query },
+     saveButtonProps,
+     handleSubmit,
+   } = useHookFormResult;
+@@ -185,6 +185,20 @@ export const useModalForm = <
+     defaultVisible,
+   });
+ 
++  // compensate for setting of initial form values in useForm since it doesnt track modal visibility
++  React.useEffect(() => {
++    if (!visible || !query?.data?.data) return;
++
++    const formData = query.data.data;
++    if (!formData) return;
++
++    reset(formData as any, {
++      ...(!autoResetFormWhenClose && {
++        keepDirtyValues: true,
++      }),
++    });
++  }, [visible, query?.data?.data, autoResetFormWhenClose]);
++
+   React.useEffect(() => {
+     if (initiallySynced === false && syncWithLocationKey) {
+       const openStatus = parsed?.params?.[syncWithLocationKey]?.open;
