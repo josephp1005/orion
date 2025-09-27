@@ -4,7 +4,6 @@ from datetime import datetime
 import os, json, time
 
 
-
 STATE_FILE = "slack_state.json"
 
 
@@ -61,28 +60,36 @@ def get_username(msg):
 
 
 
+def normalize_message(msg, is_thread=False):
+    """Turn a Slack message into dict with timestamp + datetime."""
+    text = msg.get("text", "")
+    ts = msg.get("ts")
+    dt = datetime.fromtimestamp(float(ts))
+    username = get_username(msg)
+
+    return {
+        "user": username,
+        "text": text,
+        "timestamp": ts,
+        "datetime": dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "thread": is_thread
+    }
+
 
 def fetch_slack_messages(channel_id, limit=10):
     result = client.conversations_history(channel=channel_id, limit=limit)
     messages = []
+
     for msg in result["messages"]:
-        text = msg.get("text", "")
-        ts = msg.get("ts")
-        user_id = msg.get("user")
+        # Add top-level message
+        messages.append(normalize_message(msg, is_thread=False))
 
+        # If the message has a thread, fetch replies
+        if "thread_ts" in msg and msg["thread_ts"] == msg["ts"]:
+            replies = client.conversations_replies(channel=channel_id, ts=msg["ts"])
+            for reply in replies["messages"][1:]:  # skip parent
+                messages.append(normalize_message(reply, is_thread=True))
 
-        dt = datetime.fromtimestamp(float(ts))
-
-
-        username = get_username(msg)
-
-
-        messages.append({
-            "user": username,
-            "text": text,
-            "timestamp": ts,
-            "datetime": dt.strftime("%Y-%m-%d %H:%M:%S")
-        })
     return messages
 
 
