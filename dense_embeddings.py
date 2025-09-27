@@ -8,6 +8,10 @@ from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
 from aggregate_documents import DATA_PATH, CHROMA_PATH
 from datetime import datetime
+import asyncio
+from curate import get_documentation_suggestions
+from supabase_client import execute_documentation_changes
+
 
 # must change this for non PDF data
 def load_pdf_documents():
@@ -57,6 +61,44 @@ def add_to_chroma(chunks: list[Document]):
     else:
         print("No new documents to add")
 
+def llm_curation(chunks: list[Document]):
+    """
+    Gets documentation change suggestions from an LLM and executes them.
+    """
+    print(f"Starting LLM curation for {len(chunks)} chunks...")
+    
+    # Get SQL query suggestions from the LLM
+    queries = asyncio.run(get_documentation_suggestions(chunks))
+    
+    if not queries:
+        print("LLM Curation: No documentation changes suggested.")
+        return
+
+    print(f"LLM Curation: Received {len(queries)} SQL queries to execute.")
+    print("--- QUERIES ---")
+    for q in queries:
+        print(q)
+    print("-----------------")
+
+    # Execute the suggested SQL queries
+    print("Executing documentation changes...")
+    results = execute_documentation_changes(queries)
+    
+    print("--- EXECUTION RESULTS ---")
+    success_count = 0
+    error_count = 0
+    for result in results:
+        print(f"Query: {result['query']}")
+        print(f"Status: {result['status']}")
+        if result['status'] == 'error':
+            error_count += 1
+            print(f"Details: {result['details']}")
+        else:
+            success_count += 1
+        print("-" * 10)
+    
+    print(f"LLM Curation finished. {success_count} queries succeeded, {error_count} failed.")
+
 
 def calculate_chunk_ids(chunks):
     last_page_id = None
@@ -84,12 +126,14 @@ def pdf_pipeline():
     documents = load_pdf_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
+    llm_curation(documents)
 
 
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
     chunks = split_documents(documents)
     add_to_chroma(chunks)
+    llm_curation(documents)
 
 
 def remove_all():
