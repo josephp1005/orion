@@ -115,4 +115,4 @@ if __name__ == "__main__":
             slack_pipeline(msgs)
 
         #slack_pipeline(new_msgs)
-        time.sleep(60)
+        time.sleep(300)

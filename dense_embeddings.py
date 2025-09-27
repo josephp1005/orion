@@ -154,13 +154,19 @@ def pdf_pipeline():
     documents = load_pdf_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
-    llm_curation(documents)
+    try:
+        llm_curation(documents)
+    except:
+        print("Curation failed.")
 
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
     chunks = split_documents(documents)
     add_to_chroma(chunks)
-    llm_curation(documents)
+    try:
+        llm_curation(documents)
+    except:
+        print("Curation failed")
 
 def terminal_pipeline():
     documents = load_terminal_documents()
