@@ -7,10 +7,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
-from aggregate_documents import DATA_PATH, CHROMA_PATH, GIT_PR_PATH
+from aggregate_documents import DATA_PATH, CHROMA_PATH, TERMINAL_LOG_PATH
 from datetime import datetime
-import json
-import os
+import asyncio
+from curate import get_documentation_suggestions
+from supabase_client import execute_documentation_changes
 
 # must change this for non PDF data
 def load_pdf_documents():
@@ -24,21 +25,10 @@ def load_slack_documents(messages):
         documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
     return documents
 
-def load_github_prs():
-    for fname in os.listdir(GIT_PR_PATH):
-        if fname.endswith("refined_pr_info.json"):
-            filepath = os.path.join(GIT_PR_PATH, fname)
-            break
-    else:
-        raise FileNotFoundError("No file ending with refined_pr_info.json found")
+def load_terminal_documents():
+    document_loader = DirectoryLoader(TERMINAL_LOG_PATH)
+    return document_loader.load()
 
-    with open(filepath, "r") as file:
-        data = json.load(file)
-        documents = []
-        for pr in data:
-            documents.append(Document(page_content=pr['diff'], metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":pr['created_at']}))
-        return documents
-    
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
@@ -55,7 +45,6 @@ def add_to_chroma(chunks: list[Document]):
     )
 
     chunks_with_ids = calculate_chunk_ids(chunks)
-    print(chunks_with_ids)
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
@@ -74,6 +63,44 @@ def add_to_chroma(chunks: list[Document]):
         db.add_documents(new_chunks, ids=new_chunk_ids)
     else:
         print("No new documents to add")
+
+def llm_curation(chunks: list[Document]):
+    """
+    Gets documentation change suggestions from an LLM and executes them.
+    """
+    print(f"Starting LLM curation for {len(chunks)} chunks...")
+    
+    # Get SQL query suggestions from the LLM
+    queries = asyncio.run(get_documentation_suggestions(chunks))
+    
+    if not queries:
+        print("LLM Curation: No documentation changes suggested.")
+        return
+
+    print(f"LLM Curation: Received {len(queries)} SQL queries to execute.")
+    print("--- QUERIES ---")
+    for q in queries:
+        print(q)
+    print("-----------------")
+
+    # Execute the suggested SQL queries
+    print("Executing documentation changes...")
+    results = execute_documentation_changes(queries)
+    
+    print("--- EXECUTION RESULTS ---")
+    success_count = 0
+    error_count = 0
+    for result in results:
+        print(f"Query: {result['query']}")
+        print(f"Status: {result['status']}")
+        if result['status'] == 'error':
+            error_count += 1
+            print(f"Details: {result['details']}")
+        else:
+            success_count += 1
+        print("-" * 10)
+    
+    print(f"LLM Curation finished. {success_count} queries succeeded, {error_count} failed.")
 
 
 def calculate_chunk_ids(chunks):
@@ -102,9 +129,16 @@ def pdf_pipeline():
     documents = load_pdf_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
+    llm_curation(documents)
 
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
+    llm_curation(documents)
+
+def terminal_pipeline():
+    documents = load_terminal_documents()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 

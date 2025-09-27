@@ -4,7 +4,8 @@ from embedding_function import get_embedding_function
 
 DATA_PATH = "data"
 
-GIT_PR_PATH = "github/json"
+
+TERMINAL_LOG_PATH = "oterm/logs"
 
 CHROMA_PATH = "chroma"
 
