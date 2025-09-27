@@ -4,6 +4,8 @@ import os
 import sys
 from typing import List, Dict, Any
 import subprocess
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from dense_embeddings import git_pr_pipeline
 
 class GitHubPRFetcher:
     def __init__(self, token: str = None):
@@ -187,6 +189,8 @@ def main():
 
     for file in os.listdir('json/diffs'):
         os.remove(os.path.join('json/diffs', file))
+
+    git_pr_pipeline()
 
 if __name__ == "__main__":
     main()
