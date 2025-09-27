@@ -4,6 +4,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain.schema import Document
 from get_relevant_docs import get_docs
 import argparse
+from datetime import datetime
 
 
 """
@@ -45,6 +46,23 @@ def rag_pipeline(query: str):
 
     return formatted_doc_list, output
 
+def sort_doc_by_time(doc_list):
+    # sort by time
+    blocks = doc_list.strip().split("\n\n")
+    parsed = []
+    for block in blocks:
+        lines = block.split("\n")
+        source = lines[0].strip()
+        time_str = lines[1].replace("Time", "").strip()
+        time_val = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+        parsed.append((time_val, source, time_str))
+    parsed.sort(key=lambda x: x[0])
+    response_text_sorted = ""
+    for _, source, time_str in parsed:
+        response_text_sorted += f"\n{source} \nTime {time_str} \n\n"
+
+    return response_text_sorted
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -53,8 +71,9 @@ def main():
     query_text = args.query_text
 
     formatted_doc_list, output = rag_pipeline(query_text)
+    doc_list_sorted = sort_doc_by_time(formatted_doc_list)
 
-    print(formatted_doc_list)
+    print(doc_list_sorted)
     print(output)
 
 
