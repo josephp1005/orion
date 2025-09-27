@@ -18,9 +18,7 @@ Takes in a list of documents and a string question.
 Outputs which of those documents are relevant to the question and which are not, both as lists.
 """
 def response(documents: list[Document], question: str):
-    # llm = ChatOllama(model=LLM_MODEL, temperature=0)
-    inference_server_url = "https://api.openai.com/v1"
-    
+    # llm = ChatOllama(model=LLM_MODEL, temperature=0)    
     inference_server_url = "https://api.openai.com/v1"
     
     llm = ChatOpenAI(
