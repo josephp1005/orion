@@ -1,6 +1,9 @@
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
+import psycopg2
+from typing import Iterable, Union
+
 
 load_dotenv()
 
@@ -43,24 +46,28 @@ def get_docs_structure():
         print(f"Error fetching docs structure: {e}")
         return None
 
-def execute_documentation_changes(queries: list[str]):
-    """
-    Executes a list of SQL queries against the Supabase database.
 
-    Args:
-        queries: A list of SQL query strings to execute.
-
-    Returns:
-        A list of dictionaries, each containing the query and its result ('success' or 'error').
-    """
+def execute_documentation_changes(queries: Iterable[Union[str, dict]]):
     results = []
-    for query in queries:
+    for item in queries:
+        # normalize to SQL string
+        if isinstance(item, dict):
+            sql = item.get("query")
+            if not isinstance(sql, str) or not sql.strip():
+                results.append({"query": item, "status": "error",
+                                "details": "Invalid 'query'; expected non-empty string"})
+                continue
+        elif isinstance(item, str):
+            sql = item
+        else:
+            results.append({"query": item, "status": "error",
+                            "details": f"Unsupported item type {type(item).__name__}"})
+            continue
+
         try:
-            supabase.sql(query).execute()
-            results.append({"query": query, "status": "success"})
-            print(f"Successfully executed: {query}")
+            # IMPORTANT: only send the arg your RPC actually accepts
+            supabase.rpc("execute_sql", {"query": sql}).execute()
+            results.append({"query": sql, "status": "success"})
         except Exception as e:
-            error_message = f"Error executing query: {query}\n{e}"
-            print(error_message)
-            results.append({"query": query, "status": "error", "details": str(e)})
+            results.append({"query": sql, "status": "error", "details": str(e)})
     return results

@@ -16,6 +16,8 @@ Here are the table schemas:
 - `pages` (id, collection_id, slug, title, position)
 - `page_blocks` (id, page_id, kind, content, position, meta)
 
+ONLY modify the tables which are named "collections", "pages", or "page_blocks".
+
 - `kind` can be 'heading', 'markdown', or 'code'.
 - Ensure all SQL is valid for PostgreSQL.
 - Escape single quotes in content by doubling them (e.g., 'it''s').
@@ -37,7 +39,8 @@ Here is the current documentation structure:
 Here are the new information chunks to analyze:
 {new_chunks}
 
-Please provide your response as a single JSON object with the "queries" key.
+Please provide your response as a single JSON object with the "queries" key. Do not wrap the JSON in quotes or triple ticks; only return the JSON. \n
+Make sure there is starting and ending bracket.
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """,
         input_variables=["docs_structure", "new_chunks"],

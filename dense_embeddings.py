@@ -41,7 +41,6 @@ def add_to_chroma(chunks: list[Document]):
     )
 
     chunks_with_ids = calculate_chunk_ids(chunks)
-    print(chunks_with_ids)
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
