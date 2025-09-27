@@ -79,3 +79,14 @@ When finished, run:
    ./local_scripts/kill.sh
    ```
 
+# Usage with slack
+1.```
+  python orion-test-slack.py
+  ```
+2. ```
+   python dense_embeddings.py
+   ```
+3. ```
+   python sparse_embedding.py
+   ```
+
