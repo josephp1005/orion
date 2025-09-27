@@ -59,8 +59,80 @@ class GitHubPRFetcher:
             
             if len(prs) < 50:
                 break
+
+            if page > 3:
+                break
         
         return all_prs
+    
+    def get_new_pull_requests(self, owner, repo, token, json_filename, refined_filename, state) -> List[Dict[Any, Any]]:
+        """Fetch all pull requests across multiple pages"""
+        new_prs = []
+        with open(json_filename, 'r') as f:
+            existing_prs = json.load(f)
+            print("Number of existing PRs:", len(existing_prs))
+            print(type(existing_prs))
+
+        existing_pr_numbers = set(existing_prs[i]["number"] for i in range(len(existing_prs)))
+        print(existing_pr_numbers)
+
+        url = f"{self.base_url}/repos/{owner}/{repo}/pulls?&page=1&per_page=20&state=all&sort=created&direction=desc"
+        response = requests.get(url, headers=self.headers)
+
+        recent_prs = response.json()
+        for pr in recent_prs:
+            if pr["number"] not in existing_pr_numbers:
+                print("New PR found:", pr["number"], pr["title"])
+                new_prs.append(pr)
+
+        if len(new_prs) == 0:
+            print("No new PRs found.")
+            return
+
+        new_json_filename = f"json/new_{owner}_{repo}_pull_requests.json"
+        new_refined_json_filename = f"json/new_{owner}_{repo}_refined_pr_info.json"
+        with open(new_json_filename, 'w') as f:
+            json.dump(new_prs, f, indent=2)
+
+        subprocess.run(["python3", "analyze_prs.py", new_json_filename, "n"], shell=False)
+
+        with open(new_refined_json_filename, 'r') as f:
+            new_pr_info = json.load(f)
+
+        for i in range(len(new_pr_info)):
+            result = subprocess.run([
+                                        "curl",
+                                        "-H", "Accept: application/vnd.github+json",
+                                        "-H", f"Authorization: Bearer {token}",
+                                        "-H", "X-GitHub-Api-Version: 2022-11-28",
+                                        f"https://api.github.com/repos/{owner}/{repo}/pulls/{new_pr_info[i]['pr_number']}",
+                                    ], capture_output=True, text=True)
+            pr_specific_info = json.loads(result.stdout)
+            pr_body = pr_specific_info["body"]
+            new_pr_info[i]['pr_body'] = pr_body
+
+            pr_number = new_pr_info[i]["pr_number"]
+            result = subprocess.run([
+                    "curl",
+                    "-L",
+                    "-H", f"Authorization: Bearer {token}",
+                    "-H", "Accept: application/vnd.github.v3.diff",
+                    "-H", "X-GitHub-Api-Version: 2022-11-28",
+                    f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+                ], capture_output=True, text=True)
+            diff = result.stdout
+            new_pr_info[i]["diff"] = f'"""{diff}"""'
+
+        with open(new_refined_json_filename, 'w') as f:
+            json.dump(new_pr_info, f, indent=2)
+
+        with open(refined_filename, 'r') as f:
+            refined_existing_prs = json.load(f)
+
+        refined_existing_prs.extend(new_pr_info)
+        with open(refined_filename, 'w') as f:
+            json.dump(refined_existing_prs, f, indent=2)
+
     
     def save_to_file(self, data: List[Dict[Any, Any]], filename: str):
         """Save PR data to JSON file"""
@@ -148,7 +220,7 @@ def main():
     token = os.getenv('GITHUB_TOKEN')
     
     # Get repository name from command line argument
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print("Usage: python3 fetch_prs.py <owner/repo>")
         print("Example: python3 fetch_prs.py refinedev/refine")
         sys.exit(1)
@@ -171,17 +243,20 @@ def main():
     
     print(f"Fetching pull requests from {owner}/{repo}...")
 
-    all_prs = fetcher.get_all_pull_requests(owner, repo, state="all")
-    print(f"Found {len(all_prs)} total pull requests")
-    
-    # Save to file with repo name in filename
     filename = f"json/{owner}_{repo}_pull_requests.json"
     refined_json_filename = f"json/{owner}_{repo}_refined_pr_info.json"
-    fetcher.save_to_file(all_prs, filename)
-    
-    subprocess.run(["python3", "analyze_prs.py", filename], shell=False)
-    fetcher.add_pr_body_to_json(refined_json_filename, token, owner, repo)
-    fetcher.add_diff_to_pr_info(owner, repo, refined_json_filename, token)
+
+    if len(sys.argv) == 2:
+        all_prs = fetcher.get_all_pull_requests(owner, repo, state="all")
+        print(f"Found {len(all_prs)} total pull requests")
+        
+        # Save to file with repo name in filename
+        fetcher.save_to_file(all_prs, filename)
+        subprocess.run(["python3", "analyze_prs.py", filename], shell=False)
+        fetcher.add_pr_body_to_json(refined_json_filename, token, owner, repo)
+        fetcher.add_diff_to_pr_info(owner, repo, refined_json_filename, token)
+    else:
+        fetcher.get_new_pull_requests(owner, repo, token, filename, refined_json_filename, state="all")
 
     #############################################################################
     #############################################################################
