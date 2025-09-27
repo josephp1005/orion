@@ -1,6 +1,13 @@
 from slack_sdk import WebClient
 from datetime import datetime
 from dense_embeddings import slack_pipeline
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+slack_key = os.getenv("SLACK_KEY")
+
+client = WebClient(token=slack_key)
 
 def get_username(msg):
     """Extract username or bot name from a Slack message dict."""
