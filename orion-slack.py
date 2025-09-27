@@ -8,29 +8,32 @@ STATE_FILE = "slack_state.json"
 
 
 def load_last_ts(channel_id: str):
-    """Load last seen timestamp for a channel from state file."""
     if not os.path.exists(STATE_FILE):
         return None
-    with open(STATE_FILE, "r") as f:
-        state = json.load(f)
+    try:
+        with open(STATE_FILE, "r") as f:
+            state = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        state = {}
     return state.get(channel_id)
 
 
 
 
 def save_last_ts(channel_id: str, ts: str):
-    """Save last seen timestamp for a channel to state file."""
     state = {}
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r") as f:
-            state = json.load(f)
+        try:
+            with open(STATE_FILE, "r") as f:
+                state = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            state = {}
     state[channel_id] = ts
     with open(STATE_FILE, "w") as f:
         json.dump(state, f)
 
 
 def get_username(msg):
-    """Extract username or bot name from a Slack message dict."""
     user_id = msg.get("user")
     bot_id = msg.get("bot_id")
     username = msg.get("username")
@@ -61,7 +64,6 @@ def get_username(msg):
 
 
 def normalize_message(msg, is_thread=False):
-    """Turn a Slack message into dict with timestamp + datetime."""
     text = msg.get("text", "")
     ts = msg.get("ts")
     dt = datetime.fromtimestamp(float(ts))
