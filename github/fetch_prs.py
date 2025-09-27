@@ -28,17 +28,10 @@ class GitHubPRFetcher:
             per_page: Number of results per page (max 100)
             page: Page number
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/pulls"
-        params = {
-            "state": state,
-            "per_page": per_page,
-            "page": page,
-            "sort": "created",
-            "direction": "desc"
-        }
+        url = f"{self.base_url}/repos/{owner}/{repo}/pulls?per_page={per_page}&page={page}&state=all"
         
         try:
-            response = requests.get(url, headers=self.headers, params=params)
+            response = requests.get(url, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -51,7 +44,8 @@ class GitHubPRFetcher:
         page = 1
         
         while True:
-            prs = self.get_pull_requests(owner, repo, state, per_page=100, page=page)
+            print("H PAGE", page)
+            prs = self.get_pull_requests(owner, repo, state, per_page=50, page=page)
             if not prs:
                 break
             
@@ -59,7 +53,11 @@ class GitHubPRFetcher:
             page += 1
             
             # GitHub API returns fewer results when we've reached the end
-            if len(prs) < 100:
+            
+            if len(prs) < 50:
+                break
+
+            if page > 1:
                 break
         
         return all_prs
@@ -99,6 +97,50 @@ class GitHubPRFetcher:
             "top_authors": dict(sorted(authors.items(), key=lambda x: x[1], reverse=True)[:10]),
             "top_labels": dict(sorted(labels.items(), key=lambda x: x[1], reverse=True)[:10])
         }
+    
+    def add_pr_body_to_json(self, refined_json_filename: str, token, owner, repo):
+        """Add PR body descriptions to the refined PR info JSON file"""
+        with open(refined_json_filename, 'r') as f:
+            refined_pr_info = json.load(f)
+
+        for i in range(len(refined_pr_info)):
+            result = subprocess.run([
+                                        "curl",
+                                        "-H", "Accept: application/vnd.github+json",
+                                        "-H", f"Authorization: Bearer {token}",
+                                        "-H", "X-GitHub-Api-Version: 2022-11-28",
+                                        f"https://api.github.com/repos/{owner}/{repo}/pulls/{refined_pr_info[i]['pr_number']}",
+                                    ], capture_output=True, text=True)
+            pr_specific_info = json.loads(result.stdout)
+            print(type(pr_specific_info))
+            pr_body = pr_specific_info["body"]
+            refined_pr_info[i]['pr_body'] = pr_body
+
+        with open(refined_json_filename, 'w') as f:
+            json.dump(refined_pr_info, f, indent=2)
+
+    def add_diff_to_pr_info(self, owner, repo, refined_json_filename, token):
+        """
+        Add diff information to each PR dictionary in the JSON file.
+        """
+        with open(refined_json_filename, 'r') as f:
+            refined_pr_info = json.load(f)
+
+        for i in range(len(refined_pr_info)):
+            pr_number = refined_pr_info[i]["pr_number"]
+            result = subprocess.run([
+                    "curl",
+                    "-L",
+                    "-H", f"Authorization: Bearer {token}",
+                    "-H", "Accept: application/vnd.github.v3.diff",
+                    "-H", "X-GitHub-Api-Version: 2022-11-28",
+                    f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+                ], capture_output=True, text=True)
+            diff = result.stdout
+            refined_pr_info[i]["diff"] = f'"""{diff}"""'
+        
+        with open(refined_json_filename, 'w') as f:
+            json.dump(refined_pr_info, f, indent=2)
 
 def main():
     # Get GitHub token from environment variable
@@ -127,24 +169,18 @@ def main():
     repo = repo_name.split('/')[1]
     
     print(f"Fetching pull requests from {owner}/{repo}...")
-    
-    # Get open PRs
-    open_prs = fetcher.get_pull_requests(owner, repo, state="open", per_page=50)
-    print(f"Found {len(open_prs)} open pull requests")
-    
-    # Get closed PRs (limited to avoid rate limits)
-    closed_prs = fetcher.get_pull_requests(owner, repo, state="closed", per_page=50)
-    print(f"Found {len(closed_prs)} recent closed pull requests")
-    
-    # Combine and save
-    all_prs = open_prs + closed_prs
+
+    all_prs = fetcher.get_all_pull_requests(owner, repo, state="all")
+    print(f"Found {len(all_prs)} total pull requests")
     
     # Save to file with repo name in filename
     filename = f"json/{owner}_{repo}_pull_requests.json"
+    refined_json_filename = f"json/{owner}_{repo}_refined_pr_info.json"
     fetcher.save_to_file(all_prs, filename)
     
     subprocess.run(["python3", "analyze_prs.py", filename], shell=False)
-    subprocess.run(["./retrieve_pr_details.sh", owner, repo], shell=False)
+    fetcher.add_pr_body_to_json(refined_json_filename, token, owner, repo)
+    fetcher.add_diff_to_pr_info(owner, repo, refined_json_filename, token)
 
     #############################################################################
     #############################################################################
@@ -154,9 +190,6 @@ def main():
 
     for file in os.listdir('json/diffs'):
         os.remove(os.path.join('json/diffs', file))
-
-    for file in os.listdir('json'):
-        os.remove(os.path.join('json', file))
 
 if __name__ == "__main__":
     main()
