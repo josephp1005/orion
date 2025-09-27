@@ -9,22 +9,10 @@ repo=$2
 page=1
 while [ $page -lt 5 ]; do
     echo "Fetching page $page..."
-    
-    # Get the page
-    response=$(curl -s -L "https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=100&page=$page")
-    
-    # Check if we got any results
-    count=$(echo "$response" | jq length)
-    
-    if [ "$count" -eq 0 ]; then
-        echo "No more results. Done!"
-        break
-    fi
-    
-    # Extract bodies and append to file
-    echo "$response" | jq '.[].body' >> json/body.json
-    
-    echo "Got $count PRs from page $page"
+
+    curl -s -L "https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=100&page=$page" | jq '.[].body' >> json/body.json
+
+    echo "Got $(wc -l < json/body.json) PRs from page $page"
     page=$((page + 1))
     
     # Optional: add a small delay to be nice to the API
@@ -42,7 +30,7 @@ echo "Fetching diff files for the PRs..."
 mkdir -p json/diffs
 
 # Extract the PR numbers from the refined JSON file
-pr_numbers=$(jq -r '.[].pr_number' json/refinedev_refine_refined_pr_info.json)
+pr_numbers=$(jq -r '.[].pr_number' json/${owner}_${repo}_refined_pr_info.json)
 
 count=0
 for pr_number in $pr_numbers; do
