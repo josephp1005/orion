@@ -1,8 +1,6 @@
 from slack_sdk import WebClient
 from datetime import datetime
-
-
-
+from dense_embeddings import slack_pipeline
 
 def get_username(msg):
     """Extract username or bot name from a Slack message dict."""
@@ -57,3 +55,4 @@ if __name__ == "__main__":
     msgs = fetch_slack_messages(channel_id)
     for m in msgs:
         print(f"[{m['datetime']}] {m['user']}: {m['text']}")
+    slack_pipeline(msgs)
