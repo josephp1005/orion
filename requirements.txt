@@ -1,0 +1,10 @@
+langchain==0.2.1
+langchain-community==0.2.1
+requests==2.28.1
+chromadb
+motor==3.4.0
+Flask==3.0.3
+scikit-learn==1.1.1
+numpy==1.24.0
+sentence-transformers==3.0.1
+pypdf==6.1.0
