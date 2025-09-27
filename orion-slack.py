@@ -112,5 +112,5 @@ if __name__ == "__main__":
 
             for m in new_msgs:
                 print(f"[{m['datetime']}] (#{m['channel']}) {m['user']}: {m['text']}")
-
+        #slack_pipeline(new_msgs)
         time.sleep(60)
