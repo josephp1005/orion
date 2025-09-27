@@ -44,25 +44,26 @@ def rag_pipeline(query: str):
     formatted_doc_list, docs = get_docs(query)
     output = response(docs, query)
 
-    return formatted_doc_list, output
+    return formatted_doc_list, output, docs
 
 def sort_doc_by_time(doc_list):
-    # sort by time
-    blocks = doc_list.strip().split("\n\n")
-    parsed = []
-    for block in blocks:
-        lines = block.split("\n")
-        source = lines[0].strip()
-        time_str = lines[1].replace("Time", "").strip()
-        time_val = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
-        parsed.append((time_val, source, time_str))
-    parsed.sort(key=lambda x: x[0])
-    response_text_sorted = ""
-    for _, source, time_str in parsed:
-        response_text_sorted += f"\n{source} \nTime {time_str} \n\n"
+    doc_list.sort(
+        key=lambda doc: datetime.strptime(doc.metadata["time"], "%Y-%m-%d %H:%M:%S")
+    )
 
-    return response_text_sorted
+def format_sorted_docs(doc_list):
+    response = []
+    for document in doc_list:
+        response.append({"source": document.metadata["source"], "time": document.metadata["time"], "content": document.page_content})
 
+    return response
+
+def docs_and_response(query: str):
+    formatted_doc_list, output, docs = rag_pipeline(query)
+    sort_doc_by_time(docs)
+    sorted_docs_response = format_sorted_docs(docs)
+
+    return {"docs": sorted_docs_response, "response": output}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -70,11 +71,13 @@ def main():
     args = parser.parse_args()
     query_text = args.query_text
 
-    formatted_doc_list, output = rag_pipeline(query_text)
-    doc_list_sorted = sort_doc_by_time(formatted_doc_list)
+    formatted_doc_list, output, docs = rag_pipeline(query_text)
+    sort_doc_by_time(docs)
 
-    print(doc_list_sorted)
-    print(output)
+    sorted_docs_response = format_sorted_docs(docs)
+
+    print(sorted_docs_response)
+    print(output)   
 
 
 if __name__ == "__main__":
