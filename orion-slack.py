@@ -16,9 +16,6 @@ def load_last_ts(channel_id: str):
         state = {}
     return state.get(channel_id)
 
-
-
-
 def save_last_ts(channel_id: str, ts: str):
     state = {}
     if os.path.exists(STATE_FILE):
@@ -30,7 +27,6 @@ def save_last_ts(channel_id: str, ts: str):
     state[channel_id] = ts
     with open(STATE_FILE, "w") as f:
         json.dump(state, f)
-
 
 def get_username(msg):
     user_id = msg.get("user")
@@ -55,8 +51,6 @@ def get_username(msg):
 
     return "System"
 
-
-
 def normalize_message(msg, is_thread=False):
     text = msg.get("text", "")
     ts = msg.get("ts")
@@ -70,7 +64,6 @@ def normalize_message(msg, is_thread=False):
         "datetime": dt.strftime("%Y-%m-%d %H:%M:%S"),
         "thread": is_thread
     }
-
 
 def fetch_slack_messages(channel_id, limit=10):
     result = client.conversations_history(channel=channel_id, limit=limit)
@@ -87,13 +80,11 @@ def fetch_slack_messages(channel_id, limit=10):
 
     return messages
 
-
 if __name__ == "__main__":
     channel_id = "C09HBSF54H3"  # replace with your channel id
     
     while True:
         msgs = fetch_slack_messages(channel_id)
-
 
         last_ts = load_last_ts(channel_id)
         if msgs:
@@ -101,16 +92,13 @@ if __name__ == "__main__":
         else:
             latest_ts = last_ts
 
-
         if last_ts:
             new_msgs = [m for m in msgs if float(m["timestamp"]) > float(last_ts)]
         else:
             new_msgs = msgs
 
-
         if latest_ts:
             save_last_ts(channel_id, latest_ts)
-
 
         for m in new_msgs:
             print(f"[{m['datetime']}] {m['user']}: {m['text']}")
