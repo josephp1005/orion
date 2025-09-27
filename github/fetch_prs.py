@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 import subprocess
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from dense_embeddings import git_pr_pipeline
+from dotenv import load_dotenv
 
 class GitHubPRFetcher:
     def __init__(self, token: str = None):
@@ -143,6 +144,7 @@ class GitHubPRFetcher:
 
 def main():
     # Get GitHub token from environment variable
+    load_dotenv()
     token = os.getenv('GITHUB_TOKEN')
     
     # Get repository name from command line argument
@@ -186,9 +188,6 @@ def main():
     ################ Implement Logic to Save Data to Database ################
     #############################################################################
     #############################################################################
-
-    for file in os.listdir('json/diffs'):
-        os.remove(os.path.join('json/diffs', file))
 
     git_pr_pipeline()
 

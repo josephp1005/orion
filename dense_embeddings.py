@@ -49,7 +49,9 @@ def load_github_prs():
         data = json.load(file)
         documents = []
         for pr in data:
-            documents.append(Document(page_content=pr['pr_body'] + pr['diff'], metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":pr['created_at']}))
+            
+            
+            documents.append(Document(page_content=pr.get('pr_body', "") + pr.get('diff', ""), metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":pr['created_at']}))
         return documents
 
 def split_documents(documents: list[Document]):
