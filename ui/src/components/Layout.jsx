@@ -10,13 +10,13 @@ const Layout = () => {
   return (
     <div className="flex min-h-screen bg-bg text-text">
       <Sidebar />
-      <main className="flex-1 flex min-w-0">
+      <main className="flex-1 flex flex-col min-h-0">
         {isAsk ? (
-          <div className="flex-1 flex flex-col h-screen">
+          <div className="flex-1 flex flex-col h-full">
             <Outlet />
           </div>
         ) : (
-          <div className="w-full h-full px-6 py-8 prose prose-invert">
+          <div className="mx-auto max-w-3xl px-6 py-8 prose prose-invert">
             <Outlet />
           </div>
         )}
