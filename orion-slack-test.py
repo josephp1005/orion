@@ -1,7 +1,8 @@
 from slack_sdk import WebClient
 from datetime import datetime
 
-client = WebClient(token="")
+
+#client = WebClient(token="xoxb-9589898794277-9607064077553-v3qyYofyeh79xKRuKugxDaLr")
 
 def get_username(msg):
     """Extract username or bot name from a Slack message dict."""
