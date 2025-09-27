@@ -66,7 +66,7 @@ async def get_documentation_suggestions(new_chunks: list) -> list:
         model="gpt-5",
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         openai_api_base=inference_server_url,
-        temperature=0
+        temperature=1
     )
     prompt = get_curation_prompt()
     

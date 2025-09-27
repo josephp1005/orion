@@ -51,19 +51,7 @@ def execute_documentation_changes(queries: Iterable[Union[str, dict]]):
     results = []
     for item in queries:
         # normalize to SQL string
-        if isinstance(item, dict):
-            sql = item.get("query")
-            if not isinstance(sql, str) or not sql.strip():
-                results.append({"query": item, "status": "error",
-                                "details": "Invalid 'query'; expected non-empty string"})
-                continue
-        elif isinstance(item, str):
-            sql = item
-        else:
-            results.append({"query": item, "status": "error",
-                            "details": f"Unsupported item type {type(item).__name__}"})
-            continue
-
+        sql = item
         try:
             # IMPORTANT: only send the arg your RPC actually accepts
             supabase.rpc("execute_sql", {"query": sql}).execute()
