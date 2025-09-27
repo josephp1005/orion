@@ -48,7 +48,7 @@ class GitHubPRFetcher:
         
         while True:
             print("H PAGE", page)
-            prs = self.get_pull_requests(owner, repo, state, per_page=50, page=page)
+            prs = self.get_pull_requests(owner, repo, state, per_page=10, page=page)
             if not prs:
                 break
             
@@ -60,7 +60,7 @@ class GitHubPRFetcher:
             if len(prs) < 50:
                 break
 
-            if page > 3:
+            if len(all_prs) >= 10:
                 break
         
         return all_prs
