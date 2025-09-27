@@ -1,8 +1,12 @@
 from slack_sdk import WebClient
 from datetime import datetime
 #from dense_embeddings import slack_pipeline
+from dotenv import load_dotenv
 import os, json, time
 
+load_dotenv()
+slack_key = os.getenv("SLACK_KEY")
+client = WebClient(token=slack_key)
 
 STATE_FILE = "slack_state.json"
 
@@ -51,7 +55,7 @@ def get_username(msg):
 
     return "System"
 
-def normalize_message(msg, is_thread=False):
+def normalize_message(msg, channel_name, is_thread=False):
     text = msg.get("text", "")
     ts = msg.get("ts")
     dt = datetime.fromtimestamp(float(ts))
@@ -62,48 +66,52 @@ def normalize_message(msg, is_thread=False):
         "text": text,
         "timestamp": ts,
         "datetime": dt.strftime("%Y-%m-%d %H:%M:%S"),
-        "thread": is_thread
+        "thread": is_thread,
+        "channel": channel_name
     }
 
 def fetch_slack_messages(channel_id, limit=10):
+    channel_info = client.conversations_info(channel=channel_id)
+    channel_name = channel_info["channel"]["name"]
+
     result = client.conversations_history(channel=channel_id, limit=limit)
     messages = []
 
     for msg in result["messages"]:
+        # Add top-level message
+        messages.append(normalize_message(msg, channel_name, is_thread=False))
 
-        messages.append(normalize_message(msg, is_thread=False))
-
+        # If the message has a thread, fetch replies
         if "thread_ts" in msg and msg["thread_ts"] == msg["ts"]:
             replies = client.conversations_replies(channel=channel_id, ts=msg["ts"])
             for reply in replies["messages"][1:]:  # skip parent
-                messages.append(normalize_message(reply, is_thread=True))
+                messages.append(normalize_message(reply, channel_name, is_thread=True))
 
     return messages
 
 if __name__ == "__main__":
-    channel_id = "C09HBSF54H3"  # replace with your channel id
-    
+    # 🔹 Replace with the list of channel IDs you want to track
+    channel_ids = ["C09HBSF54H3", "C09HA76R50B"]
+
     while True:
-        msgs = fetch_slack_messages(channel_id)
+        for channel_id in channel_ids:
+            msgs = fetch_slack_messages(channel_id)
 
-        last_ts = load_last_ts(channel_id)
-        if msgs:
-            latest_ts = msgs[0]["timestamp"]
-        else:
-            latest_ts = last_ts
+            last_ts = load_last_ts(channel_id)
+            if msgs:
+                latest_ts = msgs[0]["timestamp"]
+            else:
+                latest_ts = last_ts
 
-        if last_ts:
-            new_msgs = [m for m in msgs if float(m["timestamp"]) > float(last_ts)]
-        else:
-            new_msgs = msgs
+            if last_ts:
+                new_msgs = [m for m in msgs if float(m["timestamp"]) > float(last_ts)]
+            else:
+                new_msgs = msgs
 
-        if latest_ts:
-            save_last_ts(channel_id, latest_ts)
+            if latest_ts:
+                save_last_ts(channel_id, latest_ts)
 
-        for m in new_msgs:
-            print(f"[{m['datetime']}] {m['user']}: {m['text']}")
-        for m in msgs:
-            print(f"[{m['datetime']}] {m['user']}: {m['text']}")
-        #slack_pipeline(new_msgs)
+            for m in new_msgs:
+                print(f"[{m['datetime']}] (#{m['channel']}) {m['user']}: {m['text']}")
 
         time.sleep(60)
