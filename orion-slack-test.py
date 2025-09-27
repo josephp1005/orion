@@ -111,4 +111,4 @@ if __name__ == "__main__":
         print(f"[{m['datetime']}] {m['user']}: {m['text']}")
     for m in msgs:
         print(f"[{m['datetime']}] {m['user']}: {m['text']}")
-    #slack_pipeline(msgs)
+    #slack_pipeline(new_msgs)
