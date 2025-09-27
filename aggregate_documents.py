@@ -4,6 +4,7 @@ from embedding_function import get_embedding_function
 
 DATA_PATH = "data"
 
+
 TERMINAL_LOG_PATH = "oterm/logs"
 
 CHROMA_PATH = "chroma"

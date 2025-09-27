@@ -13,7 +13,6 @@ import asyncio
 from curate import get_documentation_suggestions
 from supabase_client import execute_documentation_changes
 
-
 # must change this for non PDF data
 def load_pdf_documents():
     # For PDFs in a directory (default behavior):
@@ -132,7 +131,6 @@ def pdf_pipeline():
     add_to_chroma(chunks)
     llm_curation(documents)
 
-
 def slack_pipeline(messages):
     documents = load_slack_documents(messages)
     chunks = split_documents(documents)
@@ -141,6 +139,12 @@ def slack_pipeline(messages):
 
 def terminal_pipeline():
     documents = load_terminal_documents()
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
+
+
+def git_pr_pipeline():
+    documents = load_github_prs()
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
