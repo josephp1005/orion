@@ -10,3 +10,4 @@ sentence-transformers==3.0.1
 pypdf==6.1.0
 slacksdk
 supabase
+langchain-openai==0.1.8

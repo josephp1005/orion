@@ -1,8 +1,13 @@
 import json
 from langchain_community.chat_models import ChatOllama
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from aggregate_documents import LLM_MODEL
 from supabase_client import get_docs_structure
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 def get_curation_prompt():
     return PromptTemplate(
@@ -11,19 +16,9 @@ You are an expert technical writer and database administrator. Your task is to k
 You will be given the current documentation structure and a set of new information chunks.
 Based on this, generate a list of Supabase SQL queries to perform `INSERT`, `UPDATE`, or `DELETE` operations on the documentation.
 
-Here are the table schemas:
-- `collections` (id, slug, label, position)
-- `pages` (id, collection_id, slug, title, position)
-- `page_blocks` (id, page_id, kind, content, position, meta)
-
-ONLY modify the tables which are named "collections", "pages", or "page_blocks".
-
-- `kind` can be 'heading', 'markdown', or 'code'.
-- Ensure all SQL is valid for PostgreSQL.
-- Escape single quotes in content by doubling them (e.g., 'it''s').
-- If the new information is irrelevant, conversational, or not useful, return an empty list of queries.
-
 Respond with a single JSON object containing one key: "queries". The value should be a list of SQL query strings.
+
+It is vital that you produce valid JSON.
 
 Example response:
 {{
@@ -39,8 +34,22 @@ Here is the current documentation structure:
 Here are the new information chunks to analyze:
 {new_chunks}
 
-Please provide your response as a single JSON object with the "queries" key. Do not wrap the JSON in quotes or triple ticks; only return the JSON. \n
-Make sure there is starting and ending bracket.
+Here are the table schemas:
+- `collections` (id, slug, label, position)
+- `pages` (id, collection_id, slug, title, position)
+- `page_blocks` (id, page_id, kind, content, position, meta)
+
+ONLY modify the tables which are named "collections", "pages", or "page_blocks". There are NO other table names.
+
+- `kind` can be 'heading', 'markdown', or 'code'.
+- Ensure all SQL is valid for PostgreSQL.
+- Escape single quotes in content by doubling them (e.g., 'it''s').
+- If the new information is irrelevant, conversational, or not useful, return an empty list of queries.
+
+Please provide your response as a single JSON object with the "queries" key. \n
+Only output a single valid JSON object. Do not include any explanation or extra text.
+
+return valid json or you will be terminated.
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """,
         input_variables=["docs_structure", "new_chunks"],
@@ -50,7 +59,15 @@ async def get_documentation_suggestions(new_chunks: list) -> list:
     """
     Uses an LLM to get a list of SQL queries to update documentation.
     """
-    llm = ChatOllama(model=LLM_MODEL, temperature=0)
+    # llm = ChatOllama(model=LLM_MODEL, temperature=0.4)
+    inference_server_url = "https://api.openai.com/v1"
+    
+    llm = ChatOpenAI(
+        model="gpt-5",
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        openai_api_base=inference_server_url,
+        temperature=0
+    )
     prompt = get_curation_prompt()
     
     docs_structure = get_docs_structure()
