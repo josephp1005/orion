@@ -1,6 +1,12 @@
 from langchain.schema import Document
 from langchain_community.vectorstores.chroma import Chroma
 from embedding_function import get_embedding_function
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+ORION_HOME = os.getenv("ORION_HOME")
 
 DATA_PATH = "data"
 
@@ -8,7 +14,7 @@ TERMINAL_LOG_PATH = "oterm/logs"
 
 GIT_PR_PATH = "github/json"
 
-CHROMA_PATH = "chroma"
+CHROMA_PATH = f"{ORION_HOME}/chroma"
 
 LLM_MODEL = "llama3"
 

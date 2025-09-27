@@ -80,14 +80,14 @@ def extract_commit_info(prs: List[Dict[Any, Any]]) -> List[Dict[str, Any]]:
 if __name__ == "__main__":
     # Load and analyze your existing PR data
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) != 2:
         print("Usage: python3 analyze_prs.py <path_to_pr_json>")
         print("Example: python3 analyze_prs.py /Users/testuser/hack-gt.py")
         sys.exit(1)
 
     pr_json_path = sys.argv[1].strip()
-    owner = pr_json_path.split('/')[-1].split('_')[0] if len(sys.argv) == 2 else pr_json_path.split('/')[-1].split('_')[1]
-    repo = pr_json_path.split('/')[-1].split('_')[1] if len(sys.argv) == 2 else pr_json_path.split('/')[-1].split('_')[2]
+    owner = pr_json_path.split('/')[-1].split('_')[0]
+    repo = pr_json_path.split('/')[-1].split('_')[1]
 
     prs = load_pr_data(pr_json_path)
     analyze_pull_requests(prs)
@@ -96,11 +96,8 @@ if __name__ == "__main__":
     commit_info = extract_commit_info(prs)
     
     # Save commit info
-    if len(sys.argv) == 2:
-        with open(f"json/{owner}_{repo}_refined_pr_info.json", 'w') as f:
-            json.dump(commit_info, f, indent=2)
-    else:
-        with open(f"json/new_{owner}_{repo}_refined_pr_info.json", 'w') as f:
-            json.dump(commit_info, f, indent=2)
+    with open(f"json/{owner}_{repo}_refined_pr_info.json", 'w') as f:
+        json.dump(commit_info, f, indent=2)
     
     print(f"\nExtracted commit info for {len(commit_info)} PRs")
+    
