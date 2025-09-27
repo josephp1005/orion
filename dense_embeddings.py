@@ -1,3 +1,6 @@
+"""
+might have to change unique ID calc
+"""
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
@@ -10,6 +13,12 @@ def load_pdf_documents():
     # For PDFs in a directory (default behavior):
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
     return document_loader.load()
+
+def load_slack_documents(messages):
+    documents = []
+    for message in messages:
+        documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
+    return documents
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -27,10 +36,11 @@ def add_to_chroma(chunks: list[Document]):
     )
 
     chunks_with_ids = calculate_chunk_ids(chunks)
+    print(chunks_with_ids)
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
-    print(f"PDF: Number of existing documents in DB: {len(existing_ids)}")
+    print(f"Number of existing documents in DB: {len(existing_ids)}")
 
     new_chunks = []
     for chunk in chunks_with_ids:
@@ -38,11 +48,11 @@ def add_to_chroma(chunks: list[Document]):
             new_chunks.append(chunk)
 
     if len(new_chunks) > 0:
-        print(f"PDF: Adding new documents: {len(new_chunks)}")
+        print(f"Adding new documents: {len(new_chunks)}")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
     else:
-        print("PDF: No new documents to add")
+        print("No new documents to add")
 
 
 def calculate_chunk_ids(chunks):
@@ -69,6 +79,12 @@ def calculate_chunk_ids(chunks):
 
 def pdf_pipeline():
     documents = load_pdf_documents()
+    chunks = split_documents(documents)
+    add_to_chroma(chunks)
+
+
+def slack_pipeline(messages):
+    documents = load_slack_documents(messages)
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
