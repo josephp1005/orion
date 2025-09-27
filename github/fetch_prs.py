@@ -56,9 +56,6 @@ class GitHubPRFetcher:
             
             if len(prs) < 50:
                 break
-
-            if page > 1:
-                break
         
         return all_prs
     
