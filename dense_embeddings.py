@@ -30,7 +30,7 @@ def load_pdf_documents():
 def load_slack_documents(messages):
     documents = []
     for message in messages:
-        documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
+        documents.append(Document(page_content=message['text'], metadata={"source": f"slack/{message['channel']}", "page": message['timestamp'], "time": message['datetime']}))
     return documents
 
 def load_terminal_documents():
