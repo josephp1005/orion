@@ -52,8 +52,9 @@ def load_github_prs():
             ts = pr['created_at']
             dt = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
             formatted = dt.strftime("%Y-%m-%d %H:%M:%S")
+            body = (pr.get('pr_body') or "") + (pr.get('diff') or "")
 
-            documents.append(Document(page_content=pr.get('pr_body', "") + pr.get('diff', ""), metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":formatted}))
+            documents.append(Document(page_content=body, metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":formatted}))
         return documents
 
 def split_documents(documents: list[Document]):
@@ -90,6 +91,8 @@ def add_to_chroma(chunks: list[Document]):
         db.add_documents(new_chunks, ids=new_chunk_ids)
     else:
         print("No new documents to add")
+
+    return len(new_chunks)
 
 def llm_curation(chunks: list[Document]):
     """
@@ -152,34 +155,42 @@ def calculate_chunk_ids(chunks):
     return chunks
 
 
-def pdf_pipeline():
+def pdf_pipeline(run_curation: bool = False):
     documents = load_pdf_documents()
     chunks = split_documents(documents)
-    add_to_chroma(chunks)
-    try:
-        llm_curation(documents)
-    except:
-        print("Curation failed.")
+    if add_to_chroma(chunks) == 0:
+        return
 
-def slack_pipeline(messages):
+    if (run_curation):
+        try:
+            llm_curation(documents)
+        except:
+            print("Curation failed.")
+
+def slack_pipeline(messages, run_curation: bool = False):
     documents = load_slack_documents(messages)
     chunks = split_documents(documents)
-    add_to_chroma(chunks)
-    try:
-        llm_curation(documents)
-    except:
-        print("Curation failed")
+    if add_to_chroma(chunks) == 0:
+        return
+
+    if (run_curation):
+        try:
+            llm_curation(documents)
+        except:
+            print("Curation failed")
 
 def terminal_pipeline():
     documents = load_terminal_documents()
     chunks = split_documents(documents)
-    add_to_chroma(chunks)
+    if add_to_chroma(chunks) == 0:
+        return
 
 
 def git_pr_pipeline():
     documents = load_github_prs()
     chunks = split_documents(documents)
-    add_to_chroma(chunks)
+    if add_to_chroma(chunks) == 0:
+        return
 
 
 def remove_all():

@@ -7,12 +7,12 @@ import time
 
 def get_docs(query_text: str):
     start = time.time()
-    dense_results = dense_relevant_documents(query_text, 3)
+    dense_results = dense_relevant_documents(query_text, 5)
     end = time.time()
     time_dense = end - start
 
     start = time.time()
-    sparse_results = sparse_relevant_documents(query_text, 3)
+    sparse_results = sparse_relevant_documents(query_text, 5)
     end = time.time()
     time_sparse = end - start
 
