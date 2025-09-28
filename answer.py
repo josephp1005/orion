@@ -18,7 +18,7 @@ Takes in a list of documents and a string question.
 Outputs which of those documents are relevant to the question and which are not, both as lists.
 """
 def response(documents: list[Document], question: str):
-    llm = ChatOllama(model=LLM_MODEL, temperature=0)    
+    # llm = ChatOllama(model=LLM_MODEL, temperature=0)    
     # inference_server_url = "https://api.openai.com/v1"
     
     # llm = ChatOpenAI(
@@ -27,6 +27,14 @@ def response(documents: list[Document], question: str):
     #     openai_api_base=inference_server_url,
     #     temperature=0
     # )
+    inference_server_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    
+    llm = ChatOpenAI(
+        model="gemini-2.5-flash",
+        openai_api_key=os.getenv("GEMINI_KEY"),
+        openai_api_base=inference_server_url,
+        temperature=0
+    )
 
     prompt = PromptTemplate(
         template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You will be given a user query along 

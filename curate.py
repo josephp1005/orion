@@ -59,7 +59,8 @@ async def get_documentation_suggestions(new_chunks: list) -> list:
     """
     Uses an LLM to get a list of SQL queries to update documentation.
     """
-    llm = ChatOllama(model=LLM_MODEL, temperature=0.4)
+    # llm = ChatOllama(model=LLM_MODEL, temperature=0.4)
+
     # inference_server_url = "https://api.openai.com/v1"
     
     # llm = ChatOpenAI(
@@ -68,6 +69,16 @@ async def get_documentation_suggestions(new_chunks: list) -> list:
     #     openai_api_base=inference_server_url,
     #     temperature=1
     # )
+
+    inference_server_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    
+    llm = ChatOpenAI(
+        model="gemini-2.5-flash",
+        openai_api_key=os.getenv("GEMINI_KEY"),
+        openai_api_base=inference_server_url,
+        temperature=0
+    )
+    
     prompt = get_curation_prompt()
     
     docs_structure = get_docs_structure()

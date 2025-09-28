@@ -42,6 +42,8 @@ def load_terminal_documents():
     for document in documents:
         document.metadata["type"] = "terminal"
 
+    return documents
+
 def load_github_prs():
     for fname in os.listdir(f"{ORION_HOME}/{GIT_PR_PATH}"):
         if fname.endswith("refined_pr_info.json"):
@@ -159,8 +161,10 @@ def calculate_chunk_ids(chunks):
 
     return chunks
 
-
-def pdf_pipeline(run_curation: bool = False):
+"""
+Set default to False if low API rates
+"""
+def pdf_pipeline(run_curation: bool = True):
     documents = load_pdf_documents()
     chunks = split_documents(documents)
     if add_to_chroma(chunks) == 0:
@@ -172,7 +176,10 @@ def pdf_pipeline(run_curation: bool = False):
         except:
             print("Curation failed.")
 
-def slack_pipeline(messages, run_curation: bool = False):
+"""
+Set default to False if low API rates
+"""
+def slack_pipeline(messages, run_curation: bool = True):
     documents = load_slack_documents(messages)
     chunks = split_documents(documents)
     if add_to_chroma(chunks) == 0:
@@ -184,18 +191,34 @@ def slack_pipeline(messages, run_curation: bool = False):
         except:
             print("Curation failed")
 
-def terminal_pipeline():
+"""
+Set default to False if low API rates
+"""
+def terminal_pipeline(run_curation: bool = True):
     documents = load_terminal_documents()
     chunks = split_documents(documents)
     if add_to_chroma(chunks) == 0:
         return
+    
+    if (run_curation):
+        try:
+            llm_curation(documents)
+        except:
+            print("Curation failed.")
 
-
-def git_pr_pipeline():
+"""
+Set default to False if low API rates
+"""
+def git_pr_pipeline(run_curation: bool = True):
     documents = load_github_prs()
     chunks = split_documents(documents)
     if add_to_chroma(chunks) == 0:
         return
+    if (run_curation):
+        try:
+            llm_curation(documents)
+        except:
+            print("Curation failed.")
 
 
 def remove_all():
@@ -221,3 +244,4 @@ def dense_relevant_documents(query: str, num_docs: int):
 if __name__ == "__main__":
     pdf_pipeline()
     # git_pr_pipeline()
+    # terminal_pipeline()
