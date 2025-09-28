@@ -1,4 +1,4 @@
-from aggregate_documents import LLM_MODEL
+# from aggregate_documents import LLM_MODEL
 from langchain_community.chat_models import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
@@ -18,15 +18,15 @@ Takes in a list of documents and a string question.
 Outputs which of those documents are relevant to the question and which are not, both as lists.
 """
 def response(documents: list[Document], question: str):
-    llm = ChatOllama(model=LLM_MODEL, temperature=0)    
-    # inference_server_url = "https://api.openai.com/v1"
+    # llm = ChatOllama(model=LLM_MODEL, temperature=0)    
+    inference_server_url = "https://api.openai.com/v1"
     
-    # llm = ChatOpenAI(
-    #     model="gpt-5",
-    #     openai_api_key=os.getenv("OPENAI_API_KEY"),
-    #     openai_api_base=inference_server_url,
-    #     temperature=0
-    # )
+    llm = ChatOpenAI(
+        model="gpt-5",
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        openai_api_base=inference_server_url,
+        temperature=0
+    )
 
     prompt = PromptTemplate(
         template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You will be given a user query along 
