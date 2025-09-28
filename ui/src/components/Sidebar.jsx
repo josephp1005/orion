@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
+import orionLogo from '../assets/orion_logo2.png';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -9,7 +10,14 @@ const Sidebar = () => {
 
   return (
     <aside className="w-[280px] bg-panel border-r border-border flex flex-col p-6">
-      <h1 className="text-xl font-semibold text-primary mb-6">Orion</h1>
+      <div className="flex items-center mb-6">
+        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+          <img src={orionLogo} alt="Orion Logo" className="h-8 w-8 mr-2" />
+        </a>
+        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+          <h1 className="text-xl font-semibold text-primary">Orion</h1>
+        </a>
+      </div>
       <button
         className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-left px-4 py-2 rounded-md mb-6"
         onClick={() => navigate('/ask')}
