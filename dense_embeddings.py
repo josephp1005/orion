@@ -59,7 +59,8 @@ def load_github_prs():
             ts = pr['created_at']
             dt = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
             formatted = dt.strftime("%Y-%m-%d %H:%M:%S")
-            body = (pr.get('pr_body') or "") + (pr.get('diff') or "")
+            # body = (pr.get('pr_body') or "") + (pr.get('diff') or "")
+            body = (pr.get('pr_body') or "")
 
             documents.append(Document(page_content=body, metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":formatted, "type": "github"}))
         return documents

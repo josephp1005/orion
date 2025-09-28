@@ -41,6 +41,7 @@ Here are the table schemas:
 
 ONLY modify the tables which are named "collections", "pages", or "page_blocks". There are NO other table names.
 
+- `id` is of type uuid
 - `kind` can be 'heading', 'markdown', or 'code'. Use the Markdown markup language for 'markdown' kind.
 - Ensure all SQL is valid for PostgreSQL.
 - Escape single quotes in content by doubling them (e.g., 'it''s').

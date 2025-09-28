@@ -90,7 +90,7 @@ def fetch_slack_messages(channel_id, limit=10):
 
 if __name__ == "__main__":
     # 🔹 Replace with the list of channel IDs you want to track
-    channel_ids = ["C09HBSF54H3", "C09HA76R50B"]
+    channel_ids = ["C09HJ17R1EE"]
 
     while True:
         for channel_id in channel_ids:
