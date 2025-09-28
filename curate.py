@@ -2,7 +2,7 @@ import json
 from langchain_community.chat_models import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-# from aggregate_documents import LLM_MODEL
+from aggregate_documents import LLM_MODEL
 from supabase_client import get_docs_structure
 from dotenv import load_dotenv
 import os
@@ -60,14 +60,25 @@ async def get_documentation_suggestions(new_chunks: list) -> list:
     Uses an LLM to get a list of SQL queries to update documentation.
     """
     # llm = ChatOllama(model=LLM_MODEL, temperature=0.4)
-    inference_server_url = "https://api.openai.com/v1"
+
+    # inference_server_url = "https://api.openai.com/v1"
+    
+    # llm = ChatOpenAI(
+    #     model="gpt-5",
+    #     openai_api_key=os.getenv("OPENAI_API_KEY"),
+    #     openai_api_base=inference_server_url,
+    #     temperature=1
+    # )
+
+    inference_server_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
     
     llm = ChatOpenAI(
-        model="gpt-5",
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        model="gemini-2.5-flash",
+        openai_api_key=os.getenv("GEMINI_KEY"),
         openai_api_base=inference_server_url,
-        temperature=1
+        temperature=0
     )
+    
     prompt = get_curation_prompt()
     
     docs_structure = get_docs_structure()
