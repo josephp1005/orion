@@ -1,0 +1,18 @@
+[
+  {
+    "pr_number": 1,
+    "title": "chore(node-api): bootstrap Express service with health + placeholder endpoints",
+    "author": "josephp1005",
+    "head_sha": "246e702361ead72ad215ec1d7aabb728a1605437",
+    "base_sha": "1d821707cc3611153b1708c1a2b039e0c488ad4b",
+    "head_ref": "jothomas/initial-node-js-setup",
+    "base_ref": "main",
+    "merge_commit_sha": "714c2394edbc479beb453eb0bda832fc77d46336",
+    "state": "closed",
+    "created_at": "2025-09-28T07:50:50Z",
+    "updated_at": "2025-09-28T07:54:24Z",
+    "merged_at": "2025-09-28T07:54:24Z",
+    "pr_body": "- New services/node-api directory\r\n- package.json with Express, Morgan, and Nodemon setup\r\n- src/index.js with three basic routes:\r\n- GET /health \u2192 service healthcheck\r\n- GET /wallet/:address \u2192 logs and returns a placeholder balance\r\n- POST /tx/simulate \u2192 logs body and returns a dummy simulation response\r\n- Dev script with Nodemon for hot reload",
+    "diff": "\"\"\"{\n  \"message\": \"Sorry, the diff exceeded the maximum number of files (300). Consider using 'List pull requests files' API or locally cloning the repository instead.\",\n  \"errors\": [\n    {\n      \"resource\": \"PullRequest\",\n      \"field\": \"diff\",\n      \"code\": \"too_large\"\n    }\n  ],\n  \"documentation_url\": \"https://docs.github.com/rest/pulls/pulls#list-pull-requests-files\",\n  \"status\": \"406\"\n}\n\"\"\""
+  }
+]
