@@ -16,10 +16,10 @@ Repo for Orion project @ HackGT 12
    git clone https://github.com/josephp1005/orion.git
    ```
 5. ```
-   cd local_scripts
+   pip install -r requirements.txt
    ```
 6. ```
-   pip install -r requirements.txt
+   cd local_scripts
    ```
 7. ```
    chmod +x local_kill.sh
@@ -88,5 +88,6 @@ When finished, run:
 2. Once done capturing commands, do exit; will update dense
 3. Again would need to manually update sparse
 
-
-
+# Common Issues
+1. If you delete the ChromaDB, make sure you also delete sparse embeddings pickle file.
+2. Need to run Flask App and UI for things to work

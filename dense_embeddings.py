@@ -25,17 +25,22 @@ ORION_HOME = os.getenv("ORION_HOME")
 def load_pdf_documents():
     # For PDFs in a directory (default behavior):
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
-    return document_loader.load()
+    documents = document_loader.load()
+    for document in documents:
+        document.metadata["type"] = "pdf"
+    return documents
 
 def load_slack_documents(messages):
     documents = []
     for message in messages:
-        documents.append(Document(page_content=message['text'], metadata={"source": "slack", "page": message['timestamp'], "time": message['datetime']}))
+        documents.append(Document(page_content=message['text'], metadata={"source": f"slack/{message['channel']}", "page": message['timestamp'], "time": message['datetime'], "type": "slack"}))
     return documents
 
 def load_terminal_documents():
     document_loader = DirectoryLoader(TERMINAL_LOG_PATH)
-    return document_loader.load()
+    documents = document_loader.load()
+    for document in documents:
+        document.metadata["type"] = "terminal"
 
 def load_github_prs():
     for fname in os.listdir(f"{ORION_HOME}/{GIT_PR_PATH}"):
@@ -54,7 +59,7 @@ def load_github_prs():
             formatted = dt.strftime("%Y-%m-%d %H:%M:%S")
             body = (pr.get('pr_body') or "") + (pr.get('diff') or "")
 
-            documents.append(Document(page_content=body, metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":formatted}))
+            documents.append(Document(page_content=body, metadata={"source": "github", "page": f"{pr['pr_number']}{pr['created_at']}", "time":formatted, "type": "github"}))
         return documents
 
 def split_documents(documents: list[Document]):
@@ -215,4 +220,4 @@ def dense_relevant_documents(query: str, num_docs: int):
 
 if __name__ == "__main__":
     pdf_pipeline()
-    git_pr_pipeline()
+    # git_pr_pipeline()
