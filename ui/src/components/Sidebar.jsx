@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 
@@ -6,6 +6,37 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { collections } = useData();
+  const fileInputRef = useRef(null);
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click(); // trigger hidden file input
+  };
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("pdf", file);
+
+    try {
+      const response = await fetch("http://localhost:5050/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      console.log("Uploaded:", data);
+
+      // TODO: optionally refresh collections or trigger UI update
+    } catch (err) {
+      console.error("Error uploading PDF:", err);
+    } finally {
+      e.target.value = ""; // reset input so same file can be re-uploaded if needed
+    }
+  };
+
 
   return (
     <aside className="w-[280px] bg-panel border-r border-border flex flex-col p-6">
@@ -43,6 +74,35 @@ const Sidebar = () => {
           </div>
         ))}
       </nav>
+      {/* Floating circle upload button inside sidebar */}
+      <div className="absolute bottom-6 left-20 transform -translate-x-1/2">
+        <button
+          onClick={handleUploadClick}
+          className="w-16 h-16 p-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90"
+          aria-label="Upload PDF"
+        >
+          <svg  
+            className="w-8 h-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke="currentColor"
+            strokeWidth="4" 
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </div>
     </aside>
   );
 };
