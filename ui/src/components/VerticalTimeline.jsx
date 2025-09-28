@@ -49,7 +49,7 @@ const VerticalTimeline = ({ events }) => (
           }}
         >
           <div style={{ fontWeight: "bold", color: "#1976d2" }}>
-            {event.source}
+            {event.type}
           </div>
           <div style={{ color: "#555", fontSize: "0.95em" }}>
             {event.time}

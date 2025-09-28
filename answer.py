@@ -67,7 +67,7 @@ def sort_doc_by_time(doc_list):
 def format_sorted_docs(doc_list):
     response = []
     for document in doc_list:
-        response.append({"source": document.metadata["source"], "time": document.metadata["time"], "content": document.page_content})
+        response.append({"source": document.metadata["source"], "time": document.metadata["time"], "content": document.page_content, "type": document.metadata["type"]})
 
     return response
 
