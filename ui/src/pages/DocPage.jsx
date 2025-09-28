@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import Block from '@/components/Block';
-import Spinner from '@/components/Spinner';
 
 export default function DocPage() {
   const [page, setPage] = useState(null);
