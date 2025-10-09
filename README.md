@@ -1,6 +1,9 @@
 # orion
 Repo for Orion project @ HackGT 12
 
+Video: https://www.youtube.com/watch?v=ueU99vmpKck
+Devpost: https://devpost.com/software/orion-owa3ry?ref_content=my-projects-tab&ref_feature=my_projects
+
 # Quickstart
 
 You must have Gemini API key in your ```.env```. Additionally, if you wish to use Slack and Github features, add the relevant keys to ```.env```.
@@ -50,17 +53,20 @@ python answer.py <query>
 where \<query\> is your question.
 
 Now run Flask app on separate terminal.
-12. ```
+
+13. ```
     python app.py
     ```
+    
 Finally run the React app on a separate terminal
-13. ```
+
+14. ```
     cd ui
     ```
-14. ```
+15. ```
     npm install
     ```
-15. ```
+16. ```
     npm run dev
     ```
 
